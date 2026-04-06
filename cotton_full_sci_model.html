@@ -1,0 +1,611 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--cream:#F5F0E8;--ink:#1A1714;--cotton:#FDFAF4;--accent:#2D5016;--muted:#6B6560;--border:#D4C9B8;--fiber:#E8E0D0;
+  --c-env:#185FA5;--c-gen:#3B6D11;--c-gin:#854F0B;--c-con:#993556;--c-dis:#A32D2D;
+  --c-env-bg:#E6F1FB;--c-gen-bg:#EAF3DE;--c-gin-bg:#FAEEDA;--c-con-bg:#FBEAF0;--c-dis-bg:#FCEBEB;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--cream);color:var(--ink);font-family:'Syne',sans-serif;min-height:100vh}
+.app{max-width:1100px;margin:0 auto;padding:1.5rem}
+
+/* HEADER */
+.hdr{display:flex;align-items:flex-start;justify-content:space-between;padding-bottom:1rem;margin-bottom:1.5rem;border-bottom:1.5px solid var(--ink)}
+.hdr h1{font-family:'DM Serif Display',serif;font-size:28px;line-height:1.1}
+.hdr h1 em{font-style:italic;color:var(--accent)}
+.hdr p{font-size:11px;color:var(--muted);margin-top:4px;font-family:'DM Mono',monospace}
+.fml{background:var(--ink);color:var(--cream);font-family:'DM Mono',monospace;font-size:9px;padding:7px 12px;border-radius:2px;line-height:1.7;text-align:right}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:1.2rem;flex-wrap:wrap}
+.tab{padding:6px 14px;border-radius:2px;border:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.05em;cursor:pointer;background:var(--cotton);transition:all .15s;display:flex;align-items:center;gap:6px}
+.tab-dot{width:7px;height:7px;border-radius:50%}
+.tab.active{border-color:var(--tab-c,#888);background:var(--tab-bg,var(--cotton));color:var(--tab-c,#888)}
+.tab:hover:not(.active){background:var(--fiber)}
+
+/* MAIN LAYOUT */
+.main{display:grid;grid-template-columns:1fr 310px;gap:1.2rem;align-items:start}
+
+/* PANELS */
+.panel{background:var(--cotton);border:1px solid var(--border);border-radius:4px;padding:1.1rem 1.3rem;margin-bottom:1rem}
+.panel-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
+.panel-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.panel-badge{font-size:9px;font-weight:700;letter-spacing:.08em;padding:2px 8px;border-radius:2px}
+
+/* FACTOR GROUP HEADER */
+.fgroup-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--fiber)}
+.fgroup-icon{width:28px;height:28px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.fgroup-label{font-size:12px;font-weight:700;letter-spacing:.03em}
+.fgroup-sub{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:1px}
+
+/* SLIDER ROWS */
+.srow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--fiber)}
+.srow:last-child{border-bottom:none}
+.srow-label{min-width:160px}
+.srow-name{font-size:12px;font-weight:600}
+.srow-desc{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:1px}
+.srow input[type=range]{flex:1;-webkit-appearance:none;height:2px;background:var(--fiber);border-radius:1px;outline:none;cursor:pointer}
+.srow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--ink);border:2px solid var(--cream);box-shadow:0 0 0 1px var(--ink);cursor:pointer}
+.srow .val{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;min-width:52px;text-align:right}
+
+/* SELECT */
+select{border:1px solid var(--border);border-radius:2px;padding:5px 8px;font-size:12px;font-family:'Syne',sans-serif;background:var(--cotton);color:var(--ink);cursor:pointer;outline:none;width:100%}
+
+/* RESULTS */
+.sci-card{background:var(--ink);color:var(--cream);border-radius:4px;padding:1.1rem 1.3rem;margin-bottom:1rem;position:relative;overflow:hidden}
+.sci-card::after{content:'SCI';position:absolute;right:14px;top:8px;font-family:'DM Serif Display',serif;font-size:56px;color:rgba(255,255,255,.05);pointer-events:none;line-height:1}
+.sci-row{display:flex;gap:1rem}
+.sci-col{flex:1}
+.sci-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);font-weight:700;margin-bottom:3px}
+.sci-num{font-family:'DM Serif Display',serif;font-size:42px;line-height:1;letter-spacing:-1px}
+.sci-grade{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:2px;margin-top:6px}
+.sci-divider{width:1px;background:rgba(255,255,255,.12);margin:4px 0}
+.sci-footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:.5px solid rgba(255,255,255,.12)}
+.sci-footer-lbl{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.35);font-weight:700}
+.sci-loss-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:500}
+
+/* CONTRIB BARS */
+.contrib-section{margin-bottom:1rem}
+.contrib-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.contrib-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.contrib-name{font-size:11px;font-weight:600;min-width:80px}
+.contrib-bar-bg{flex:1;background:var(--fiber);border-radius:2px;height:6px}
+.contrib-bar-fill{height:6px;border-radius:2px;transition:width .4s}
+.contrib-val{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;min-width:44px;text-align:right}
+
+/* DELTA TABLE */
+.dtable{width:100%;border-collapse:collapse;font-size:11px}
+.dtable th{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:4px 6px;border-bottom:1px solid var(--border);text-align:left}
+.dtable td{padding:5px 6px;border-bottom:.5px solid var(--fiber);vertical-align:middle}
+.dtable tr:last-child td{border-bottom:none}
+.chg-neg{color:#A32D2D}
+.chg-pos{color:#2D5016}
+.chg-neu{color:var(--muted)}
+
+/* SCALE */
+.scale{display:flex;gap:3px;margin-top:.8rem}
+.scale-seg{flex:1;text-align:center}
+.scale-bar{height:5px;border-radius:1px;margin-bottom:3px;transition:opacity .3s}
+.scale-lbl{font-size:9px;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:.04em}
+.scale-rng{font-size:8px;color:var(--muted);font-family:'DM Mono',monospace}
+.scale-seg.active .scale-bar{outline:2px solid var(--ink);outline-offset:1px}
+.scale-seg.active .scale-lbl{font-weight:700;color:var(--ink)}
+
+/* IMPACT MAP */
+.impact-map{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin-top:.5rem}
+.imp-cell{padding:4px 2px;border-radius:2px;text-align:center;font-size:9px;font-family:'DM Mono',monospace;font-weight:500}
+.imp-header{font-size:9px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-align:center;padding:2px}
+
+/* INFO BOX */
+.info-box{background:var(--fiber);border-radius:3px;padding:8px 10px;margin-top:.7rem;font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="hdr">
+  <div>
+    <h1>Cotton <em>Quality</em> → SCI Engine</h1>
+    <p>5-Factor Model · Disease + Environment + Genetics + Ginning + Contamination</p>
+  </div>
+  <div class="fml">SCI = −414.67 + 2.9×Str − 9.32×Mic<br>+ 49.17×Len(") + 4.74×UI + 0.65×Rd + 0.36×+b</div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <div class="tab active" id="tab-dis" style="--tab-c:var(--c-dis);--tab-bg:var(--c-dis-bg)" onclick="switchTab('dis')"><span class="tab-dot" style="background:var(--c-dis)"></span>A. Disease</div>
+  <div class="tab" id="tab-env" style="--tab-c:var(--c-env);--tab-bg:var(--c-env-bg)" onclick="switchTab('env')"><span class="tab-dot" style="background:var(--c-env)"></span>B. Environment</div>
+  <div class="tab" id="tab-gen" style="--tab-c:var(--c-gen);--tab-bg:var(--c-gen-bg)" onclick="switchTab('gen')"><span class="tab-dot" style="background:var(--c-gen)"></span>C. Genetics / Variety</div>
+  <div class="tab" id="tab-gin" style="--tab-c:var(--c-gin);--tab-bg:var(--c-gin-bg)" onclick="switchTab('gin')"><span class="tab-dot" style="background:var(--c-gin)"></span>D. Ginning</div>
+  <div class="tab" id="tab-con" style="--tab-c:var(--c-con);--tab-bg:var(--c-con-bg)" onclick="switchTab('con')"><span class="tab-dot" style="background:var(--c-con)"></span>E. Contamination</div>
+</div>
+
+<div class="main">
+<div>
+
+<!-- A. DISEASE -->
+<div id="sec-dis">
+<div class="panel">
+  <div class="panel-title">Disease Detection <span class="panel-badge" style="background:var(--c-dis-bg);color:var(--c-dis)">Factor A</span></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+    <div class="dis-btn" id="db-Healthy" onclick="setDis('Healthy')" style="border:1px solid #3B6D11;border-radius:3px;padding:9px 10px;cursor:pointer;background:#EAF3DE">
+      <div style="width:6px;height:6px;border-radius:50%;background:#3B6D11;margin-bottom:5px"></div>
+      <div style="font-size:11px;font-weight:700">Healthy</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace">No visible disease</div>
+    </div>
+    <div class="dis-btn" id="db-Bacterial_Blight" onclick="setDis('Bacterial_Blight')" style="border:1px solid var(--border);border-radius:3px;padding:9px 10px;cursor:pointer;background:var(--cotton)">
+      <div style="width:6px;height:6px;border-radius:50%;background:#C0392B;margin-bottom:5px"></div>
+      <div style="font-size:11px;font-weight:700">Bacterial Blight</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace">Angular spots</div>
+    </div>
+    <div class="dis-btn" id="db-Fusarium_Wilt" onclick="setDis('Fusarium_Wilt')" style="border:1px solid var(--border);border-radius:3px;padding:9px 10px;cursor:pointer;background:var(--cotton)">
+      <div style="width:6px;height:6px;border-radius:50%;background:#D4850A;margin-bottom:5px"></div>
+      <div style="font-size:11px;font-weight:700">Fusarium Wilt</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace">Yellowing & wilting</div>
+    </div>
+    <div class="dis-btn" id="db-Curl_Virus" onclick="setDis('Curl_Virus')" style="border:1px solid var(--border);border-radius:3px;padding:9px 10px;cursor:pointer;background:var(--cotton)">
+      <div style="width:6px;height:6px;border-radius:50%;background:#7B2D8B;margin-bottom:5px"></div>
+      <div style="font-size:11px;font-weight:700">Curl Virus (CLCuD)</div>
+      <div style="font-size:9px;color:var(--muted);font-family:'DM Mono',monospace">Curling & deformation</div>
+    </div>
+  </div>
+  <div id="dis-sev-wrap" style="display:none">
+    <div class="srow" style="padding:8px 0">
+      <div class="srow-label"><div class="srow-name">Severity</div><div class="srow-desc">Disease progression %</div></div>
+      <input type="range" min="0" max="100" value="50" step="1" id="dis-sev" oninput="update()">
+      <span class="val" id="dis-sev-val" style="font-family:'DM Mono',monospace;font-size:13px;font-weight:500;min-width:52px;text-align:right">50%</span>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- B. ENVIRONMENT -->
+<div id="sec-env" style="display:none">
+<div class="panel">
+  <div class="panel-title">Environmental Conditions <span class="panel-badge" style="background:var(--c-env-bg);color:var(--c-env)">Factor B</span></div>
+  <div class="fgroup-hdr"><div class="fgroup-icon" style="background:var(--c-env-bg);color:var(--c-env);font-size:14px">🌧</div><div><div class="fgroup-label" style="color:var(--c-env)">Rain / Boll Exposure</div><div class="fgroup-sub">Rd −5→−20% per rain event severity · +b +2→+8</div></div></div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Rain at boll opening</div><div class="srow-desc">staining intensity</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="env-rain" oninput="update()">
+    <span class="val" id="venv-rain">None</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Humidity exposure</div><div class="srow-desc">microbial growth on fiber</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="env-humid" oninput="update()">
+    <span class="val" id="venv-humid">None</span>
+  </div>
+  <div style="height:8px"></div>
+  <div class="fgroup-hdr"><div class="fgroup-icon" style="background:#FDF3E3;color:#7A4A06;font-size:14px">🌡</div><div><div class="fgroup-label" style="color:#7A4A06">Temperature Stress</div><div class="fgroup-sub">Length −2→−8% · Micronaire shifts ±0.5</div></div></div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Heat stress</div><div class="srow-desc">shortens fibers, raises mic</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="env-heat" oninput="update()">
+    <span class="val" id="venv-heat">None</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Cold / frost stress</div><div class="srow-desc">incomplete cellulose, lowers mic</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="env-cold" oninput="update()">
+    <span class="val" id="venv-cold">None</span>
+  </div>
+</div>
+</div>
+
+<!-- C. GENETICS -->
+<div id="sec-gen" style="display:none">
+<div class="panel">
+  <div class="panel-title">Genetic / Variety Selection <span class="panel-badge" style="background:var(--c-gen-bg);color:var(--c-gen)">Factor C</span></div>
+  <div class="info-box" style="margin-bottom:10px">Genetics controls ~68% of strength variance, ~40% of length variance (Uzbekistan field trials 2018–20). Select variety tier to apply a baseline property adjustment relative to the mid-grade default.</div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Variety tier</div><div class="srow-desc">genetic fiber quality class</div></div>
+    <select id="gen-var" onchange="update()" style="flex:1">
+      <option value="0">Mid-grade Upland (baseline)</option>
+      <option value="1">Premium ELS / Pima (long fiber)</option>
+      <option value="-1">Low-grade / short-staple</option>
+      <option value="0.5">Improved Bt hybrid (above avg)</option>
+      <option value="-0.5">Old unimproved variety (below avg)</option>
+    </select>
+    <span class="val" id="vgen-var" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;min-width:52px;text-align:right;color:var(--c-gen)">±0</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Variety×environment fit</div><div class="srow-desc">region suitability</div></div>
+    <input type="range" min="-50" max="50" value="0" step="5" id="gen-env" oninput="update()">
+    <span class="val" id="vgen-env">Neutral</span>
+  </div>
+</div>
+</div>
+
+<!-- D. GINNING -->
+<div id="sec-gin" style="display:none">
+<div class="panel">
+  <div class="panel-title">Ginning & Processing <span class="panel-badge" style="background:var(--c-gin-bg);color:var(--c-gin)">Factor D</span></div>
+  <div class="info-box" style="margin-bottom:10px">Each lint cleaning pass: −0.2→0.5mm length, UI −0.6→1.0 pts. Moisture below 5%: −1/100" length per % point. Ginning cannot improve strength; over-drying creates permanent damage. Source: USDA Gin Research Lab.</div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Lint cleaning passes</div><div class="srow-desc">0 = none, 3 = heavy cleaning</div></div>
+    <input type="range" min="0" max="3" value="1" step="1" id="gin-passes" oninput="update()">
+    <span class="val" id="vgin-passes">1 pass</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Moisture at ginning</div><div class="srow-desc">ideal: 6–8%; below 5% = damage</div></div>
+    <input type="range" min="2" max="10" value="7" step="0.5" id="gin-moist" oninput="update()">
+    <span class="val" id="vgin-moist">7%</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Gin speed quality</div><div class="srow-desc">Poor = high speed, aggressive</div></div>
+    <select id="gin-speed" onchange="update()" style="flex:1">
+      <option value="0">Optimal speed & settings</option>
+      <option value="1">Slightly aggressive</option>
+      <option value="2">Poor — over-ginned</option>
+    </select>
+    <span class="val" id="vgin-speed" style="font-family:'DM Mono',monospace;font-size:11px;min-width:52px;text-align:right"></span>
+  </div>
+</div>
+</div>
+
+<!-- E. CONTAMINATION -->
+<div id="sec-con" style="display:none">
+<div class="panel">
+  <div class="panel-title">Contamination <span class="panel-badge" style="background:var(--c-con-bg);color:var(--c-con)">Factor E</span></div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Trash / leaf content</div><div class="srow-desc">inflates apparent micronaire</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="con-trash" oninput="update()">
+    <span class="val" id="vcon-trash">None</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Sticky cotton</div><div class="srow-desc">sugars from insects/disease</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="con-sticky" oninput="update()">
+    <span class="val" id="vcon-sticky">None</span>
+  </div>
+  <div class="srow">
+    <div class="srow-label"><div class="srow-name">Soil / oil / plastic</div><div class="srow-desc">grade deduction & Rd loss</div></div>
+    <input type="range" min="0" max="100" value="0" step="1" id="con-soil" oninput="update()">
+    <span class="val" id="vcon-soil">None</span>
+  </div>
+</div>
+</div>
+
+<!-- ALWAYS VISIBLE: BASE PROPERTIES -->
+<div class="panel">
+  <div class="panel-title">Base Fiber Properties (Healthy Baseline)</div>
+  <div class="srow"><div class="srow-label"><div class="srow-name">Strength</div><div class="srow-desc">g/tex</div></div><input type="range" min="18" max="38" step="0.5" value="27" id="b-str" oninput="update()"><span class="val" id="vb-str">27.0</span></div>
+  <div class="srow"><div class="srow-label"><div class="srow-name">Micronaire</div><div class="srow-desc">fineness + maturity</div></div><input type="range" min="2.5" max="6.5" step="0.1" value="4.2" id="b-mic" oninput="update()"><span class="val" id="vb-mic">4.2</span></div>
+  <div class="srow"><div class="srow-label"><div class="srow-name">Length UHML</div><div class="srow-desc">inches</div></div><input type="range" min="0.85" max="1.35" step="0.01" value="1.10" id="b-len" oninput="update()"><span class="val" id="vb-len">1.10"</span></div>
+  <div class="srow"><div class="srow-label"><div class="srow-name">Uniformity Index</div><div class="srow-desc">%</div></div><input type="range" min="74" max="88" step="0.5" value="81" id="b-ui" oninput="update()"><span class="val" id="vb-ui">81.0%</span></div>
+  <div class="srow"><div class="srow-label"><div class="srow-name">Reflectance Rd</div><div class="srow-desc">whiteness %</div></div><input type="range" min="60" max="85" step="0.5" value="74" id="b-rd" oninput="update()"><span class="val" id="vb-rd">74.0</span></div>
+  <div class="srow"><div class="srow-label"><div class="srow-name">Yellowness +b</div><div class="srow-desc">color tint</div></div><input type="range" min="6" max="16" step="0.5" value="9" id="b-yb" oninput="update()"><span class="val" id="vb-yb">9.0</span></div>
+</div>
+
+</div><!-- /left -->
+
+<!-- RIGHT: RESULTS -->
+<div>
+  <!-- SCI CARD -->
+  <div class="sci-card">
+    <div class="sci-row">
+      <div class="sci-col">
+        <div class="sci-lbl">Healthy SCI</div>
+        <div class="sci-num" id="r-sci-h">—</div>
+        <div id="r-grade-h"></div>
+      </div>
+      <div class="sci-divider"></div>
+      <div class="sci-col">
+        <div class="sci-lbl">Final SCI</div>
+        <div class="sci-num" id="r-sci-f" style="color:#F5A623">—</div>
+        <div id="r-grade-f"></div>
+      </div>
+    </div>
+    <div class="sci-footer">
+      <span class="sci-footer-lbl">Total SCI Loss</span>
+      <span class="sci-loss-val" id="r-loss">—</span>
+    </div>
+  </div>
+
+  <!-- FACTOR CONTRIBUTION -->
+  <div class="panel">
+    <div class="panel-title">Loss by Factor</div>
+    <div id="contrib-bars"></div>
+  </div>
+
+  <!-- PROPERTY DELTA TABLE -->
+  <div class="panel">
+    <div class="panel-title">Final Property Values</div>
+    <table class="dtable">
+      <thead><tr><th>Property</th><th>Healthy</th><th>Final</th><th>Δ%</th></tr></thead>
+      <tbody id="dtable-body"></tbody>
+    </table>
+    <!-- SCALE -->
+    <div class="scale" id="r-scale"></div>
+  </div>
+
+  <!-- IMPACT MAP -->
+  <div class="panel">
+    <div class="panel-title">Factor × Property impact map</div>
+    <div id="impact-map-wrap"></div>
+  </div>
+</div>
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────
+const DISEASES={
+  Healthy:{label:'Healthy',color:'#3B6D11',impacts:null},
+  Bacterial_Blight:{label:'Bacterial Blight',color:'#C0392B',
+    impacts:{str:{l:-2,m:-8,h:-18},mic:{l:-3,m:-8,h:-15},len:{l:-1,m:-4,h:-8},ui:{l:-0.5,m:-1.5,h:-3},rd:{l:-3,m:-8,h:-15},yb:{l:1,m:3,h:6}}},
+  Fusarium_Wilt:{label:'Fusarium Wilt',color:'#D4850A',
+    impacts:{str:{l:-3,m:-12,h:-25},mic:{l:-5,m:-15,h:-30},len:{l:-2,m:-8,h:-18},ui:{l:-1,m:-3,h:-6},rd:{l:-2,m:-6,h:-12},yb:{l:1,m:4,h:8}}},
+  Curl_Virus:{label:'Curl Virus',color:'#7B2D8B',
+    impacts:{str:{l:-2,m:-7.5,h:-15},mic:{l:-1,m:-4,h:-8},len:{l:-3,m:-10,h:-20},ui:{l:-0.5,m:-1.5,h:-4},rd:{l:-1,m:-3,h:-7},yb:{l:1,m:3,h:6}}}
+};
+const GRADES=[{min:160,lbl:'Premium',bg:'#EAF3DE',clr:'#1B4D06'},{min:130,lbl:'Good',bg:'#E3EFF9',clr:'#1A4A7A'},{min:100,lbl:'Average',bg:'#FDF3E3',clr:'#7A4A06'},{min:70,lbl:'Below Avg',bg:'#FBE8E6',clr:'#8B2015'},{min:0,lbl:'Poor',bg:'#F8E0E0',clr:'#7A0F0F'}];
+const SCALE_COLORS=['#3B6D11','#378ADD','#BA7517','#D85A30','#A32D2D'];
+const FACTOR_COLORS={dis:'#A32D2D',env:'#185FA5',gen:'#3B6D11',gin:'#854F0B',con:'#993556'};
+const FACTOR_NAMES={dis:'Disease',env:'Environment',gen:'Genetics',gin:'Ginning',con:'Contamination'};
+const PROPS=['str','mic','len','ui','rd','yb'];
+const PROP_NAMES={str:'Strength',mic:'Micronaire',len:'Length',ui:'Uniformity',rd:'Rd',yb:'+b'};
+const PROP_FMT={str:v=>v.toFixed(1),mic:v=>v.toFixed(2),len:v=>v.toFixed(3)+'"',ui:v=>v.toFixed(1)+'%',rd:v=>v.toFixed(1),yb:v=>v.toFixed(1)};
+
+let curDis='Healthy';
+
+// ── HELPERS ─────────────────────────────────────────────────────
+function interp(def,sev){
+  if(!def)return 0;
+  if(sev<=25)return def.l*(sev/25);
+  if(sev<=60)return def.l+(def.m-def.l)*((sev-25)/35);
+  if(sev<=80)return def.m+(def.h-def.m)*((sev-60)/20);
+  return def.h;
+}
+function calcSCI(s,mic,len,ui,rd,yb){return -414.67+2.9*s-9.32*mic+49.17*len+4.74*ui+0.65*rd+0.36*yb;}
+function getGrade(sci){for(const g of GRADES)if(sci>=g.min)return g;return GRADES[GRADES.length-1];}
+function pctLabel(v){if(v<=20)return'None';if(v<=40)return'Mild';if(v<=65)return'Moderate';if(v<=85)return'High';return'Severe';}
+function applyPct(base,pct){return base*(1+pct/100);}
+
+// ── TAB SWITCH ──────────────────────────────────────────────────
+function switchTab(t){
+  ['dis','env','gen','gin','con'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('active',x===t);
+    document.getElementById('sec-'+x).style.display=x===t?'':'none';
+  });
+}
+
+// ── DISEASE SELECT ───────────────────────────────────────────────
+function setDis(d){
+  curDis=d;
+  const dis=DISEASES[d];
+  document.querySelectorAll('.dis-btn').forEach(b=>{b.style.border='1px solid var(--border)';b.style.background='var(--cotton)';});
+  const btn=document.getElementById('db-'+d);
+  btn.style.border=`1px solid ${dis.color}`;
+  btn.style.background=d==='Healthy'?'#EAF3DE':d==='Bacterial_Blight'?'#FBEEEC':d==='Fusarium_Wilt'?'#FDF5E6':'#F7EEF9';
+  document.getElementById('dis-sev-wrap').style.display=d==='Healthy'?'none':'block';
+  update();
+}
+
+// ── COMPUTE FACTOR DELTAS ────────────────────────────────────────
+function computeFactorDeltas(base){
+  const sev=parseInt(document.getElementById('dis-sev').value);
+  const dis=DISEASES[curDis];
+  // A. Disease
+  const dDis={};
+  PROPS.forEach(p=>{
+    const imp=dis.impacts?.[p];
+    dDis[p]=imp?interp(imp,sev):0;
+  });
+
+  // B. Environment
+  const rain=parseInt(document.getElementById('env-rain').value)/100;
+  const humid=parseInt(document.getElementById('env-humid').value)/100;
+  const heat=parseInt(document.getElementById('env-heat').value)/100;
+  const cold=parseInt(document.getElementById('env-cold').value)/100;
+  const dEnv={
+    str:0, mic: heat*8 - cold*6,
+    len: -(heat*8+cold*4), ui:-(heat*2+cold*1.5),
+    rd: -(rain*18+humid*10), yb: (rain*7+humid*4)
+  };
+
+  // C. Genetics
+  const genTier=parseFloat(document.getElementById('gen-var').value);
+  const genFit=parseInt(document.getElementById('gen-env').value)/100;
+  const dGen={
+    str: genTier*6 + genFit*3,
+    mic: -genTier*0.3,
+    len: genTier*5 + genFit*2.5,
+    ui: genTier*2 + genFit*1,
+    rd: 0, yb:0
+  };
+
+  // D. Ginning
+  const passes=parseInt(document.getElementById('gin-passes').value);
+  const moist=parseFloat(document.getElementById('gin-moist').value);
+  const ginSpeed=parseInt(document.getElementById('gin-speed').value);
+  const lengthLossMM = passes*0.35 + (moist<5?(5-moist)*0.01*25.4:0) + ginSpeed*0.25;
+  const lengthLossPct=-(lengthLossMM/base.len)*100*(1/25.4);
+  const uiLoss=-(passes*0.8+ginSpeed*0.7);
+  const dGin={str:-(ginSpeed*3),mic:0,len:lengthLossPct,ui:uiLoss,rd:0,yb:0};
+
+  // E. Contamination
+  const trash=parseInt(document.getElementById('con-trash').value)/100;
+  const sticky=parseInt(document.getElementById('con-sticky').value)/100;
+  const soil=parseInt(document.getElementById('con-soil').value)/100;
+  const dCon={
+    str:-(sticky*4+soil*2),
+    mic: trash*8,   // inflates apparent mic (bad for premium range)
+    len:-(trash*2),
+    ui:-(trash*1.5+sticky*1),
+    rd:-(soil*12+trash*5),
+    yb:(soil*4+trash*2)
+  };
+
+  return {dis:dDis,env:dEnv,gen:dGen,gin:dGin,con:dCon};
+}
+
+// ── MAIN UPDATE ──────────────────────────────────────────────────
+function update(){
+  // Read base
+  const base={
+    str:parseFloat(document.getElementById('b-str').value),
+    mic:parseFloat(document.getElementById('b-mic').value),
+    len:parseFloat(document.getElementById('b-len').value),
+    ui: parseFloat(document.getElementById('b-ui').value),
+    rd: parseFloat(document.getElementById('b-rd').value),
+    yb: parseFloat(document.getElementById('b-yb').value),
+  };
+  document.getElementById('vb-str').textContent=base.str.toFixed(1);
+  document.getElementById('vb-mic').textContent=base.mic.toFixed(1);
+  document.getElementById('vb-len').textContent=base.len.toFixed(2)+'"';
+  document.getElementById('vb-ui').textContent=base.ui.toFixed(1)+'%';
+  document.getElementById('vb-rd').textContent=base.rd.toFixed(1);
+  document.getElementById('vb-yb').textContent=base.yb.toFixed(1);
+
+  // Severity label
+  const sev=parseInt(document.getElementById('dis-sev').value);
+  document.getElementById('dis-sev-val').textContent=sev+'%';
+
+  // UI labels
+  const rl=v=>pctLabel(parseInt(v));
+  document.getElementById('venv-rain').textContent=rl(document.getElementById('env-rain').value);
+  document.getElementById('venv-humid').textContent=rl(document.getElementById('env-humid').value);
+  document.getElementById('venv-heat').textContent=rl(document.getElementById('env-heat').value);
+  document.getElementById('venv-cold').textContent=rl(document.getElementById('env-cold').value);
+  const gp=parseInt(document.getElementById('gin-passes').value);
+  document.getElementById('vgin-passes').textContent=gp===0?'None':gp+' pass'+(gp>1?'es':'');
+  document.getElementById('vgin-moist').textContent=parseFloat(document.getElementById('gin-moist').value).toFixed(1)+'%';
+  const gs=['Optimal','Slightly aggressive','Poor — over-ginned'][parseInt(document.getElementById('gin-speed').value)];
+  document.getElementById('vgin-speed').textContent='';
+  document.getElementById('vcon-trash').textContent=rl(document.getElementById('con-trash').value);
+  document.getElementById('vcon-sticky').textContent=rl(document.getElementById('con-sticky').value);
+  document.getElementById('vcon-soil').textContent=rl(document.getElementById('con-soil').value);
+
+  // Genetics readout
+  const gt=parseFloat(document.getElementById('gen-var').value);
+  document.getElementById('vgen-var').textContent=(gt>=0?'+':'')+gt.toFixed(1)+'σ';
+  const genv=parseInt(document.getElementById('gen-env').value);
+  document.getElementById('vgen-env').textContent=genv>10?'+Favorable':genv<-10?'−Unfavorable':'Neutral';
+
+  // COMPUTE
+  const deltas=computeFactorDeltas(base);
+  const sciH=calcSCI(base.str,base.mic,base.len,base.ui,base.rd,base.yb);
+
+  // Combine all % deltas additively per property
+  const finalBase={...base};
+  const factorOrder=['dis','env','gen','gin','con'];
+  const sciByFactor={};
+  let sciPrev=sciH;
+
+  // Build final values
+  const combined={str:0,mic:0,len:0,ui:0,rd:0,yb:0};
+  factorOrder.forEach(f=>{
+    PROPS.forEach(p=>{combined[p]+=deltas[f][p]||0;});
+  });
+  const final={};
+  PROPS.forEach(p=>{
+    if(p==='yb')final[p]=base[p]*(1+Math.abs(combined[p])/100)*(combined[p]>0?1:(combined[p]<0?0.99:1));
+    else final[p]=base[p]*(1+combined[p]/100);
+  });
+  const sciF=calcSCI(final.str,final.mic,final.len,final.ui,final.rd,final.yb);
+
+  // Compute per-factor SCI contribution
+  let cumStr=base.str,cumMic=base.mic,cumLen=base.len,cumUI=base.ui,cumRd=base.rd,cumYb=base.yb;
+  let prevSCI=sciH;
+  const fContribs={};
+  factorOrder.forEach(f=>{
+    const d=deltas[f];
+    const nStr=cumStr*(1+(d.str||0)/100);
+    const nMic=cumMic*(1+(d.mic||0)/100);
+    const nLen=cumLen*(1+(d.len||0)/100);
+    const nUI=cumUI*(1+(d.ui||0)/100);
+    const nRd=cumRd*(1+(d.rd||0)/100);
+    const nYb=p=>cumYb*(1+Math.abs(d.yb||0)/100);
+    const nSCI=calcSCI(nStr,nMic,nLen,nUI,nRd,cumYb*(1+Math.abs(d.yb||0)/100));
+    fContribs[f]=nSCI-prevSCI;
+    cumStr=nStr;cumMic=nMic;cumLen=nLen;cumUI=nUI;cumRd=nRd;
+    prevSCI=nSCI;
+  });
+
+  // RENDER SCI cards
+  document.getElementById('r-sci-h').textContent=Math.round(sciH);
+  document.getElementById('r-sci-f').textContent=Math.round(sciF);
+  const grH=getGrade(sciH),grF=getGrade(sciF);
+  document.getElementById('r-grade-h').innerHTML=`<span class="sci-grade" style="background:${grH.bg};color:${grH.clr}">${grH.lbl}</span>`;
+  document.getElementById('r-grade-f').innerHTML=`<span class="sci-grade" style="background:${grF.bg};color:${grF.clr}">${grF.lbl}</span>`;
+  const loss=sciF-sciH;
+  const lossEl=document.getElementById('r-loss');
+  lossEl.textContent=(loss>=0?'+':'')+Math.round(loss)+' ('+(loss>=0?'+':'')+(loss/Math.abs(sciH)*100).toFixed(1)+'%)';
+  lossEl.style.color=loss<-10?'#F5A623':loss<0?'#E8C870':'rgba(255,255,255,.7)';
+
+  // FACTOR CONTRIBUTION BARS
+  const maxAbs=Math.max(1,...Object.values(fContribs).map(v=>Math.abs(v)));
+  const cBars=document.getElementById('contrib-bars');
+  cBars.innerHTML=factorOrder.map(f=>{
+    const v=fContribs[f];
+    const pct=Math.min(100,Math.abs(v)/maxAbs*100);
+    const clr=FACTOR_COLORS[f];
+    const valStr=(v>=0?'+':'')+Math.round(v)+' SCI';
+    return `<div class="contrib-row">
+      <span class="contrib-dot" style="background:${clr}"></span>
+      <span class="contrib-name" style="color:${v<-2?clr:'var(--muted)'}">${FACTOR_NAMES[f]}</span>
+      <div class="contrib-bar-bg"><div class="contrib-bar-fill" style="width:${pct}%;background:${v<0?clr:'#3B6D11'}"></div></div>
+      <span class="contrib-val" style="color:${v<-2?clr:v>2?'#3B6D11':'var(--muted)'}">${valStr}</span>
+    </div>`;
+  }).join('');
+
+  // DELTA TABLE
+  const tbody=document.getElementById('dtable-body');
+  tbody.innerHTML=PROPS.map(p=>{
+    const h=base[p],f=final[p];
+    const chg=(f-h)/h*100;
+    const isBad=(p==='yb'||p==='mic')?chg>2:chg<-2;
+    const isGood=(p==='yb'||p==='mic')?chg<-2:chg>2;
+    const cls=isBad?'chg-neg':isGood?'chg-pos':'chg-neu';
+    return `<tr><td style="font-weight:600;font-size:11px">${PROP_NAMES[p]}</td>
+      <td style="font-family:'DM Mono',monospace">${PROP_FMT[p](h)}</td>
+      <td style="font-family:'DM Mono',monospace;font-weight:500">${PROP_FMT[p](f)}</td>
+      <td class="${cls}" style="font-family:'DM Mono',monospace">${chg>=0?'+':''}${chg.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+  // SCALE
+  const scaleEl=document.getElementById('r-scale');
+  const tiers=[{lbl:'Premium',min:160,clr:SCALE_COLORS[0]},{lbl:'Good',min:130,clr:SCALE_COLORS[1]},{lbl:'Average',min:100,clr:SCALE_COLORS[2]},{lbl:'Below Avg',min:70,clr:SCALE_COLORS[3]},{lbl:'Poor',min:0,clr:SCALE_COLORS[4]}];
+  scaleEl.innerHTML=tiers.map(t=>{
+    const active=grF.lbl===t.lbl;
+    return `<div class="scale-seg ${active?'active':''}">
+      <div class="scale-bar" style="background:${t.clr};opacity:${active?1:.28}"></div>
+      <div class="scale-lbl" style="color:${active?t.clr:'var(--muted)'}">${t.lbl}</div>
+    </div>`;
+  }).join('');
+
+  // IMPACT MAP
+  const factors=['dis','env','gen','gin','con'];
+  const fShort={dis:'Disease',env:'Environ.',gen:'Genetics',gin:'Ginning',con:'Contam.'};
+  const props2=['str','mic','len','ui','rd','yb'];
+  const mapEl=document.getElementById('impact-map-wrap');
+  let html='<div class="impact-map">';
+  html+=`<div class="imp-header"></div>`;
+  props2.forEach(p=>html+=`<div class="imp-header">${PROP_NAMES[p]}</div>`);
+  factors.forEach(f=>{
+    html+=`<div style="font-size:10px;font-weight:700;color:${FACTOR_COLORS[f]};padding:2px 0;display:flex;align-items:center">${fShort[f]}</div>`;
+    props2.forEach(p=>{
+      const v=deltas[f][p]||0;
+      const intensity=Math.min(100,Math.abs(v)*4);
+      const isBad=(p==='yb')?v>0:v<0;
+      const isGood=(p==='yb')?v<0:v>0;
+      let bg='var(--fiber)',clr='var(--muted)',txt='—';
+      if(Math.abs(v)>0.1){
+        bg=isBad?`rgba(192,57,43,${intensity/100*0.7+0.1})`:`rgba(45,80,22,${intensity/100*0.6+0.1})`;
+        clr=isBad?'#fff':'#fff';
+        txt=(v>=0?'+':'')+v.toFixed(0)+'%';
+      }
+      html+=`<div class="imp-cell" style="background:${bg};color:${clr}">${txt}</div>`;
+    });
+  });
+  html+='</div>';
+  mapEl.innerHTML=html;
+}
+
+// Init
+switchTab('dis');
+setDis('Healthy');
+</script>
+</body>
+</html>
