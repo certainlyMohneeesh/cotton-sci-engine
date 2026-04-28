@@ -69,7 +69,7 @@ interface StageDetectionProps {
 
 export function StageDetection({ state, onStateChange, onNext }: StageDetectionProps) {
   const [phase, setPhase] = useState<Phase>(state.disease ? "result" : "idle")
-  const [errorMsg, setErrorMsg] = useState<string>("")
+  const [errorCode, setErrorCode] = useState<string>("")
   const [reasoning, setReasoning] = useState<string>("")
   const [analyzeStep, setAnalyzeStep] = useState<string>("Uploading image...")
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -90,7 +90,11 @@ export function StageDetection({ state, onStateChange, onNext }: StageDetectionP
       const data: DetectionResult & { error?: string } = await res.json()
 
       if (!res.ok || data.error) {
-        setErrorMsg(data.error ?? "Unknown server error.")
+        const raw = data.error ?? ""
+        if (raw.includes("OPENROUTER_API_KEY")) setErrorCode("not-configured")
+        else if (res.status === 429 || raw.includes("rate-limited") || raw.includes("rate_limit")) setErrorCode("rate-limited")
+        else if (res.status >= 500) setErrorCode("server-error")
+        else setErrorCode("parse-error")
         setPhase("error")
         return
       }
@@ -104,8 +108,8 @@ export function StageDetection({ state, onStateChange, onNext }: StageDetectionP
       const key = data.disease ?? "Healthy"
       setReasoning(data.reasoning ?? "")
       applyDetectionResult(key, data.confidence, data.severity)
-    } catch (err) {
-      setErrorMsg(`Network error: ${String(err)}`)
+    } catch {
+      setErrorCode("network-error")
       setPhase("error")
     }
   }
@@ -152,7 +156,7 @@ export function StageDetection({ state, onStateChange, onNext }: StageDetectionP
   function reset() {
     onStateChange({ uploadedImage: null, disease: null })
     setPhase("idle")
-    setErrorMsg("")
+    setErrorCode("")
     setReasoning("")
     if (fileInputRef.current) fileInputRef.current.value = ""
   }
@@ -283,17 +287,29 @@ export function StageDetection({ state, onStateChange, onNext }: StageDetectionP
             <div className="space-y-3">
               <div className="rounded border-l-[3px] p-4" style={{ borderLeftColor: "#F08080", border: "1px solid var(--border)", borderLeft: "3px solid #F08080", background: "rgba(240,128,128,0.08)" }}>
                 <div className="font-mono text-[9px] font-bold tracking-[0.1em] uppercase mb-2" style={{ color: "#F08080" }}>✗ Detection Error</div>
-                <div className="font-serif text-xl mb-2" style={{ color: "#F08080" }}>Analysis Failed</div>
-                <div className="font-mono text-xs text-muted-foreground leading-relaxed">{errorMsg}</div>
-                {errorMsg.includes("OPENROUTER_API_KEY") && (
+                <div className="font-serif text-xl mb-3" style={{ color: "#F08080" }}>
+                  {errorCode === "not-configured" && "API Key Missing"}
+                  {errorCode === "rate-limited" && "Service Busy"}
+                  {errorCode === "network-error" && "Connection Failed"}
+                  {errorCode === "server-error" && "Server Unavailable"}
+                  {(errorCode === "parse-error" || !errorCode) && "Analysis Failed"}
+                </div>
+                <div className="font-mono text-xs text-muted-foreground leading-relaxed">
+                  {errorCode === "not-configured" && "The AI detection service is not configured yet."}
+                  {errorCode === "rate-limited" && "All detection models are currently busy. Please wait a moment and try again."}
+                  {errorCode === "network-error" && "Could not reach the detection service. Check your internet connection and try again."}
+                  {errorCode === "server-error" && "The detection server encountered an error. Please try again in a few seconds."}
+                  {(errorCode === "parse-error" || !errorCode) && "The AI returned an unexpected response. Please try again — a different model will be used."}
+                </div>
+                {errorCode === "not-configured" && (
                   <div className="mt-3 rounded bg-muted/30 px-3 py-2 font-mono text-[10px] text-muted-foreground leading-relaxed">
                     Add <code className="text-foreground">OPENROUTER_API_KEY=your_key</code> to <code className="text-foreground">.env.local</code> and restart the dev server.{" "}
                     <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-[#6FB0F0] underline">Get a free key at openrouter.ai →</a>
                   </div>
                 )}
-                {errorMsg.includes("rate-limited") && (
+                {errorCode === "rate-limited" && (
                   <div className="mt-3 rounded bg-muted/30 px-3 py-2 font-mono text-[10px] text-muted-foreground leading-relaxed">
-                    All free vision models are busy. Wait ~30 seconds and try again — the pipeline auto-retries 3 different models (Gemma 4 → Llama 4 Scout → Qwen VL 72B).
+                    The pipeline automatically retries across 3 different models. If this persists, wait ~30 seconds and try again.
                   </div>
                 )}
               </div>
