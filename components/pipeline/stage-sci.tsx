@@ -213,25 +213,25 @@ export function StageSCI({ state, onStateChange, onNext, onBack }: StageSCIProps
         {/* RIGHT – results */}
         <div className="space-y-4">
           {/* Big SCI card */}
-          <div className="rounded-lg p-5 relative overflow-hidden" style={{ background: "var(--foreground)", color: "var(--background)" }}>
-            <div className="absolute right-4 top-2 font-serif text-[80px] opacity-[0.04] leading-none pointer-events-none">SCI</div>
+          <div className="rounded-lg p-5 relative overflow-hidden border border-border/60 bg-card/80 backdrop-blur">
+            <div className="absolute right-4 top-2 font-serif text-[80px] opacity-[0.04] leading-none pointer-events-none text-foreground">SCI</div>
             <div className="flex gap-5">
               <div className="flex-1">
-                <div className="text-[9px] font-bold tracking-[0.12em] uppercase opacity-40 mb-1">Healthy Baseline SCI</div>
-                <div className="font-serif text-5xl tracking-tight leading-none">{fmtSCI(sciH)}</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-1">Healthy Baseline SCI</div>
+                <div className="font-serif text-5xl tracking-tight leading-none text-foreground">{fmtSCI(sciH)}</div>
                 <span className="inline-flex rounded text-[9px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 mt-1.5" style={{ background: dkH.bg, color: dkH.clr }}>{grH.lbl}</span>
               </div>
-              <div className="w-px opacity-10" style={{ background: "currentColor" }} />
+              <div className="w-px bg-border/60" />
               <div className="flex-1">
-                <div className="text-[9px] font-bold tracking-[0.12em] uppercase opacity-40 mb-1">Disease-Adjusted SCI</div>
+                <div className="text-[9px] font-bold tracking-[0.12em] uppercase text-muted-foreground mb-1">Disease-Adjusted SCI</div>
                 <div className="font-serif text-5xl tracking-tight leading-none" style={{ color: "#F5A623" }}>{fmtSCI(sciF)}</div>
                 <span className="inline-flex rounded text-[9px] font-bold tracking-[0.08em] uppercase px-2 py-0.5 mt-1.5" style={{ background: dkF.bg, color: dkF.clr }}>{grF.lbl}</span>
               </div>
             </div>
-            <div className="flex justify-between items-center mt-4 pt-4" style={{ borderTop: "0.5px solid rgba(0,0,0,0.15)" }}>
-              <span className="text-[9px] font-bold tracking-[0.1em] uppercase opacity-35">ΔSCI Loss</span>
+            <div className="flex justify-between items-center mt-4 pt-4 border-t border-border/50">
+              <span className="text-[9px] font-bold tracking-[0.1em] uppercase text-muted-foreground">ΔSCI Loss</span>
               <span className="font-mono text-xl font-semibold"
-                style={{ color: sciDelta < -5 ? "#F5A623" : sciDelta < 0 ? "#D4A84B" : "rgba(0,0,0,0.5)" }}>
+                style={{ color: sciDelta < -5 ? "#F5A623" : sciDelta < 0 ? "#E0C060" : "#8FCE5A" }}>
                 {sciDelta >= 0 ? "+" : ""}{Math.round(sciDelta)} pts
               </span>
             </div>
@@ -316,8 +316,7 @@ export function StageSCI({ state, onStateChange, onNext, onBack }: StageSCIProps
       <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/40">
         <button onClick={onBack} className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border border-border/60 text-muted-foreground transition-all hover:border-foreground/60 hover:text-foreground">← Back</button>
         <button onClick={() => { onStateChange({ sciHealthy: sciH, sciFinal: sciF, sciDelta }); onNext() }}
-          className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border transition-all"
-          style={{ background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }}>
+          className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border border-foreground/70 text-foreground bg-foreground/10 transition-all hover:bg-foreground/20">
           Retrieve Market Prices →
         </button>
       </div>

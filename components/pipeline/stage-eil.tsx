@@ -185,8 +185,7 @@ export function StageEIL({ state, onStateChange, onBack, onReset }: StageEILProp
       <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/40">
         <button onClick={onBack} className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border border-border/60 text-muted-foreground transition-all hover:border-foreground/60 hover:text-foreground">← Back</button>
         <button onClick={onReset}
-          className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border transition-all"
-          style={{ background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }}>
+          className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border border-foreground/70 text-foreground bg-foreground/10 transition-all hover:bg-foreground/20">
           ↺ New Analysis
         </button>
       </div>

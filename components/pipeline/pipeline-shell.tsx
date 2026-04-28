@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { type PipelineStage, type PipelineState, DEFAULT_PIPELINE_STATE } from "./pipeline-types"
 import { StageDetection } from "./stage-detection"
@@ -47,16 +48,23 @@ export function CottonPipelineShell() {
   const progress = (stage / 4) * 100
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_12%_10%,rgba(24,95,165,0.28),transparent_38%),radial-gradient(circle_at_88%_8%,rgba(153,53,86,0.24),transparent_42%),linear-gradient(180deg,#05070d_0%,#0b1020_62%,#0f1528_100%)]">
+      {/* Grid overlay */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.22] [background-image:linear-gradient(to_right,rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgba(148,163,184,0.12)_1px,transparent_1px)] [background-size:38px_38px]" />
+
       {/* ── Sticky header ──────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 py-3.5 border-b border-border/60"
-        style={{ background: "var(--foreground)", color: "var(--background)" }}>
-        <div>
-          <div className="font-serif text-lg leading-none">
-            Cotton <em className="not-italic" style={{ color: "#C4982A" }}>Intelligence</em> Pipeline
-          </div>
-          <div className="font-mono text-[10px] opacity-45 mt-0.5 tracking-[0.08em] uppercase">
-            Image Detection → SCI Degradation → EIL Decision
+      <header className="sticky top-0 z-50 flex items-center justify-between px-4 md:px-8 py-3.5 border-b border-white/10 bg-card/80 backdrop-blur-xl"
+        style={{ color: "var(--foreground)" }}>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="font-mono text-[10px] font-semibold opacity-40 hover:opacity-70 transition-opacity tracking-[0.06em] uppercase">← Home</Link>
+          <div className="h-3 w-px opacity-20" style={{ background: "currentColor" }} />
+          <div>
+            <div className="font-serif text-lg leading-none">
+              Cotton <em className="not-italic" style={{ color: "#C4982A" }}>Intelligence</em> Pipeline
+            </div>
+            <div className="font-mono text-[10px] opacity-45 mt-0.5 tracking-[0.08em] uppercase">
+              Image Detection → SCI Degradation → EIL Decision
+            </div>
           </div>
         </div>
 
@@ -71,9 +79,9 @@ export function CottonPipelineShell() {
                 onClick={() => goStage(n as PipelineStage)}
                 className="px-3 py-1.5 font-semibold tracking-[0.06em] transition-opacity border -ml-px first:ml-0"
                 style={{
-                  color: active ? color : "rgba(255,255,255,0.3)",
-                  borderColor: active ? color : "rgba(255,255,255,0.12)",
-                  opacity: active ? 1 : 0.45,
+                  color: active ? color : "var(--muted-foreground)",
+                  borderColor: active ? color : "var(--border)",
+                  opacity: active ? 1 : 0.5,
                   borderRadius: n === 1 ? "2px 0 0 2px" : n === 4 ? "0 2px 2px 0" : 0,
                   cursor: n === 1 || pipeState.disease ? "pointer" : "default",
                 }}
@@ -86,12 +94,12 @@ export function CottonPipelineShell() {
       </header>
 
       {/* ── Progress bar ───────────────────────────────────────────────────── */}
-      <div className="h-[3px] w-full" style={{ background: "var(--border)" }}>
+      <div className="relative h-[3px] w-full" style={{ background: "rgba(255,255,255,0.08)" }}>
         <div className="h-full transition-all duration-500 ease-out" style={{ width: `${progress}%`, background: "var(--foreground)" }} />
       </div>
 
       {/* ── Stage content ──────────────────────────────────────────────────── */}
-      <main className="mx-auto max-w-[1200px] px-4 md:px-8 py-6">
+      <main className="relative mx-auto max-w-[1200px] px-4 md:px-8 py-6">
         {stage === 1 && (
           <StageDetection
             state={pipeState}

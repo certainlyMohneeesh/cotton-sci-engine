@@ -88,17 +88,17 @@ export function StageMarket({ state, onStateChange, onNext, onBack }: StageMarke
         </div>
 
         {/* Derived penalty card */}
-        <div className="rounded border border-border/60 p-4 relative overflow-hidden" style={{ background: "var(--foreground)", color: "var(--background)" }}>
-          <div className="font-mono text-[10px] font-bold tracking-[0.1em] uppercase opacity-40 mb-2">Derived Penalty</div>
-          <div className="font-serif text-5xl tracking-tight leading-none mb-1">₹{penalty.toFixed(1)}</div>
-          <div className="font-mono text-[11px] opacity-45 mb-3">₹ per SCI point lost</div>
-          <div className="font-mono text-[9px] opacity-30 leading-relaxed">
+        <div className="rounded border p-4 relative overflow-hidden bg-card/80 backdrop-blur" style={{ borderColor: "rgba(224,170,96,0.4)" }}>
+          <div className="font-mono text-[10px] font-bold tracking-[0.1em] uppercase text-muted-foreground mb-2">Derived Penalty</div>
+          <div className="font-serif text-5xl tracking-tight leading-none mb-1" style={{ color: "#E0AA60" }}>₹{penalty.toFixed(1)}</div>
+          <div className="font-mono text-[11px] text-muted-foreground mb-3">₹ per SCI point lost</div>
+          <div className="font-mono text-[9px] text-muted-foreground/50 leading-relaxed">
             P<sub>penalty</sub> = (P<sub>premium</sub> − P<sub>standard</sub>) / (SCI<sub>premium</sub> − SCI<sub>standard</sub>)<br />
             Updates dynamically with mandi prices
           </div>
-          <div className="mt-3 pt-3" style={{ borderTop: "0.5px solid rgba(0,0,0,0.15)" }}>
-            <div className="text-[9px] uppercase tracking-[0.1em] opacity-35 mb-1">ΔSCI (from model)</div>
-            <div className="font-mono text-xl font-semibold">{dSCI} pts</div>
+          <div className="mt-3 pt-3 border-t border-border/50">
+            <div className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground mb-1">ΔSCI (from model)</div>
+            <div className="font-mono text-xl font-semibold text-foreground">{dSCI} pts</div>
           </div>
         </div>
       </div>
@@ -127,8 +127,7 @@ export function StageMarket({ state, onStateChange, onNext, onBack }: StageMarke
       <div className="flex justify-between items-center mt-6 pt-4 border-t border-border/40">
         <button onClick={onBack} className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border border-border/60 text-muted-foreground transition-all hover:border-foreground/60 hover:text-foreground">← Back</button>
         <button onClick={() => { onStateChange({ penalty }); onNext() }}
-          className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border transition-all"
-          style={{ background: "var(--foreground)", color: "var(--background)", borderColor: "var(--foreground)" }}>
+          className="px-5 py-2 rounded text-xs font-bold tracking-[0.06em] uppercase border border-foreground/70 text-foreground bg-foreground/10 transition-all hover:bg-foreground/20">
           Compute EIL Decision →
         </button>
       </div>

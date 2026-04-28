@@ -177,8 +177,8 @@ export function CottonSciCalculator() {
               </p>
             </div>
             <div className="rounded-lg border border-border/60 bg-background/50 px-4 py-3 text-right font-mono text-[11px] leading-relaxed text-muted-foreground">
-              SCI = -414.67 + 2.9 * Str - 9.32 * Mic
-              <br />+ 49.17 * Len(in) + 4.74 * UI + 0.65 * Rd + 0.36 * +b
+              SCI India = −415 − 9.31·Mic + 1.98·UHML(mm)
+              <br />+ 4.87·UI% + 2.85·Str + 0.64·Rd + 0.30·(+b)
             </div>
           </div>
         </header>
