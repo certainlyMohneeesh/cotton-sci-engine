@@ -201,6 +201,23 @@ export function calcSCI(str: number, mic: number, len: number, ui: number, rd: n
   return -414.67 + 2.9 * str - 9.32 * mic + 49.17 * len + 4.74 * ui + 0.65 * rd + 0.36 * yb
 }
 
+/** Millimetres per inch constant for UHML conversion. */
+export const MM_PER_INCH = 25.4
+
+/**
+ * India-calibrated SCI formula.
+ * SCI India = −415 − 9.31·Mic + 1.98·UHML(mm) + 4.87·UI% + 2.85·Strength + 0.64·Rd + 0.30·(+b)
+ * @param str   Strength (g/tex)
+ * @param mic   Micronaire
+ * @param uhmlMm  UHML in millimetres
+ * @param ui    Uniformity Index (%)
+ * @param rd    Reflectance Rd
+ * @param yb    Yellowness +b
+ */
+export function calcSCIIndia(str: number, mic: number, uhmlMm: number, ui: number, rd: number, yb: number): number {
+  return -415 - 9.31 * mic + 1.98 * uhmlMm + 4.87 * ui + 2.85 * str + 0.64 * rd + 0.30 * yb
+}
+
 export function getGrade(score: number): GradeBand {
   for (const grade of GRADE_BANDS) {
     if (score >= grade.min) return grade
