@@ -1,4 +1,5 @@
 import type { DiseaseKey } from "@/lib/cotton-sci"
+import { GoogleGenAI } from '@google/genai'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -96,9 +97,9 @@ Uniform green, no lesions, no curling, no marginal browning, no spots.
 
 Now classify the image. Return ONLY the JSON object.`
 
-// ─── Core: call one model ─────────────────────────────────────────────────────
+// ─── Core: call one model (OpenRouter) ────────────────────────────────────────
 
-async function callModel(
+async function callOpenRouterModel(
   model: string,
   imageDataUrl: string,
   apiKey: string
@@ -188,6 +189,78 @@ async function callModel(
   return { ok: true, data: parsed }
 }
 
+// ─── Core: call Gemini model ──────────────────────────────────────────────────
+
+async function callGeminiModel(
+  model: string,
+  imageDataUrl: string,
+  apiKey: string
+): Promise<{ ok: true; data: DetectionResult } | { ok: false; retryable: boolean; error: string }> {
+  const matches = imageDataUrl.match(/^data:(image\/\w+);base64,(.*)$/)
+  if (!matches) {
+    return { ok: false, retryable: false, error: "Invalid imageDataUrl format for Gemini." }
+  }
+  const mimeType = matches[1]
+  const base64Data = matches[2]
+
+  const client = new GoogleGenAI({ apiKey })
+
+  let textOutput: string | undefined
+
+  try {
+    const response = await client.models.generateContent({
+      model: model,
+      config: {
+        temperature: 0.05,
+        responseMimeType: "application/json",
+      },
+      contents: [
+        { text: SYSTEM_PROMPT },
+        { inlineData: { mimeType, data: base64Data } }
+      ]
+    })
+
+    textOutput = response.text
+  } catch (err: any) {
+    const status = err?.status || 500
+    const msg = err?.message || String(err)
+    return { ok: false, retryable: status === 429 || status >= 500, error: `Gemini SDK error: ${msg}` }
+  }
+
+  if (!textOutput) {
+    return { ok: false, retryable: true, error: "Gemini returned an empty response." }
+  }
+
+  // ── Parse JSON with truncation recovery ────────────────────────────────────
+  let parsed: DetectionResult
+  try {
+    const cleaned = textOutput
+      .replace(/```json\s*/gi, "")
+      .replace(/```\s*/g, "")
+      .trim()
+    parsed = JSON.parse(cleaned)
+  } catch {
+    const recovered = tryRecoverTruncatedJSON(textOutput)
+    if (recovered) {
+      parsed = recovered
+    } else {
+      return { ok: false, retryable: true, error: `Gemini response is not valid JSON: ${textOutput.slice(0, 200)}` }
+    }
+  }
+
+  const validDiseases: DiseaseKey[] = ["Healthy", "Bacterial_Blight", "Fusarium_Wilt", "Curl_Virus"]
+  if (parsed.disease !== null && !validDiseases.includes(parsed.disease as DiseaseKey)) {
+    parsed.disease = null
+    parsed.isCottonLeaf = false
+  }
+  parsed.confidence = Math.max(0, Math.min(100, Number(parsed.confidence) || 0))
+  parsed.severity = Math.max(0, Math.min(100, Number(parsed.severity) || 0))
+  parsed.reasoning = typeof parsed.reasoning === "string" ? parsed.reasoning.slice(0, 200) : ""
+  parsed.modelUsed = model
+
+  return { ok: true, data: parsed }
+}
+
 // ─── Truncated JSON recovery ──────────────────────────────────────────────────
 //
 // When a model gets cut off mid-output (hit token limit), the JSON is incomplete.
@@ -237,10 +310,12 @@ function tryRecoverTruncatedJSON(raw: string): DetectionResult | null {
 // ─── Route Handler ────────────────────────────────────────────────────────────
 
 export async function POST(request: Request) {
-  const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) {
+  const geminiApiKey = process.env.GEMINI_API_KEY
+  const openrouterApiKey = process.env.OPENROUTER_API_KEY
+
+  if (!geminiApiKey && !openrouterApiKey) {
     return Response.json(
-      { error: "OPENROUTER_API_KEY is not configured. Add it to .env.local and restart the dev server." },
+      { error: "Neither GEMINI_API_KEY nor OPENROUTER_API_KEY is configured. Add them to .env.local and restart the dev server." },
       { status: 500 }
     )
   }
@@ -257,34 +332,46 @@ export async function POST(request: Request) {
     return Response.json({ error: "imageDataUrl must be a base64 data URL." }, { status: 400 })
   }
 
-  // Try each model in order — skip to next on 429 or retryable parse errors
   const errors: string[] = []
 
-  for (const model of FALLBACK_MODELS) {
-    const result = await callModel(model, imageDataUrl, apiKey)
-
-    if (result.ok) {
-      return Response.json(result.data)
+  // 1. Try Gemini first (Primary)
+  if (geminiApiKey) {
+    const geminiResult = await callGeminiModel("gemini-3-flash-preview", imageDataUrl, geminiApiKey)
+    if (geminiResult.ok) {
+      return Response.json(geminiResult.data)
     }
+    errors.push(geminiResult.error)
+    console.warn("Gemini model failed, falling back to OpenRouter:", geminiResult.error)
+  }
 
-    errors.push(result.error)
+  // 2. Try OpenRouter models (Fallback)
+  if (openrouterApiKey) {
+    for (const model of FALLBACK_MODELS) {
+      const result = await callOpenRouterModel(model, imageDataUrl, openrouterApiKey)
 
-    // Skip to next model on rate-limit OR retryable errors (bad JSON, empty response)
-    if (result.rateLimited || result.retryable) {
-      continue
+      if (result.ok) {
+        return Response.json(result.data)
+      }
+
+      errors.push(result.error)
+
+      // Skip to next model on rate-limit OR retryable errors (bad JSON, empty response)
+      if (result.rateLimited || result.retryable) {
+        continue
+      }
+
+      // Non-retryable error — break early instead of returning immediately
+      break
     }
-
-    // Non-retryable error — propagate immediately
-    return Response.json({ error: result.error }, { status: 502 })
   }
 
   // All models failed
-  const allRateLimited = errors.every(e => e.includes("rate-limited"))
+  const allRateLimited = errors.length > 0 && errors.every(e => e.includes("rate-limited") || e.includes("429"))
   return Response.json(
     {
       error: allRateLimited
-        ? "All free vision models are currently rate-limited. Please wait 30 seconds and try again, or add your own provider key at openrouter.ai/settings/integrations."
-        : `All models failed. Last error: ${errors[errors.length - 1]}`,
+        ? "All vision models are currently rate-limited. Please wait 30 seconds and try again."
+        : `All models failed. Last error: ${errors[errors.length - 1] || "Unknown error"}`,
       details: errors,
     },
     { status: allRateLimited ? 429 : 502 }
